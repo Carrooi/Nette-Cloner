@@ -1,5 +1,8 @@
 # Carrooi/Cloner
 
+[![Build Status](https://img.shields.io/travis/Carrooi/Nette-Cloner.svg?style=flat-square)](https://travis-ci.org/Carrooi/Nette-Helpers)
+[![Donate](https://img.shields.io/badge/donate-PayPal-brightgreen.svg?style=flat-square)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=875QBGRGZUK8A)
+
 Extension for auto-copying assets or any other files to your project.
 
 ## Installation
