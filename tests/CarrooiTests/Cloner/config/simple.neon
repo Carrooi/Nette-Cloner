@@ -1,0 +1,6 @@
+cloner:
+
+	paths:
+		- [%appDir%/files/css/style.css, %tempDir%/public/style.css]
+		- [%appDir%/files/css/other.css, %tempDir%/public/other.css]
+		- [%appDir%/files/js/web.js, %tempDir%/public/web.js]

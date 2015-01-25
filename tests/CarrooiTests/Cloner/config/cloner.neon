@@ -1,0 +1,44 @@
+cloner:
+
+	debug: true
+
+	autoRun: true
+
+	paths:
+		# files
+		- [%appDir%/files/css/style.css, %tempDir%/public/style.css]
+		- [%appDir%/files/css/core/variables.css, %tempDir%/public]
+		- [
+			[
+				%appDir%/files/css/other.css,
+				%appDir%/files/js/web.js
+			],
+			%tempDir%/public
+		]
+
+		# directories
+		- [%appDir%/files/css/core, %tempDir%/public]
+		- [
+			[
+				%appDir%/files/css/components/widgets,
+				%appDir%/files/js
+			],
+			%tempDir%/public
+		]
+
+		# finder
+		- [
+			[mask: '*.css', in: %appDir%/files/css/core],
+			%tempDir%/public
+		]
+		- [
+			[mask: '*.css', from: %appDir%/files/css/components],
+			%tempDir%/public
+		]
+		- [
+			[
+				[mask: '*.css', in: %appDir%/files/css/core],
+				[mask: '*.css', from: %appDir%/files/css/components]
+			],
+			%tempDir%/public
+		]

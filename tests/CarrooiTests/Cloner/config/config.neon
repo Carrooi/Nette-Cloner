@@ -1,0 +1,26 @@
+php:
+	date.timezone: Europe/Prague
+
+
+extensions:
+	commands: Kdyby\Console\DI\ConsoleExtension
+	cloner: Carrooi\Cloner\DI\ClonerExtension
+
+
+nette:
+	security:
+		frames: null
+
+	session:
+		autoStart: false
+
+
+services:
+
+	cacheStorage:
+		class: Nette\Caching\Storages\MemoryStorage
+
+
+commands:
+
+	disabled: false
