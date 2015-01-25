@@ -33,7 +33,7 @@ There you can see simple configuration which will copy everything from `node_mod
 
 Each "source" / "target" path must be in one array (not in pair), but there can be many sources / one target paths. 
 
-Take a look at testing [configuration](https://github.com/Carrooi/Nette-Cloner) for all possible path options.
+Take a look at testing [configuration](https://github.com/Carrooi/Nette-Cloner/blob/master/tests/CarrooiTests/Cloner/config/cloner.neon) for all possible path options.
 
 ## Running
 
