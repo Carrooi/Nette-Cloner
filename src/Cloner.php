@@ -28,7 +28,7 @@ class Cloner extends Object
 	private $files = [];
 
 	/** @var array */
-	private $hashes = [];
+	private $modified = [];
 
 	/** @var array */
 	private $rebuild = null;
@@ -95,7 +95,7 @@ class Cloner extends Object
 	 */
 	public function invalidate()
 	{
-		$this->files = $this->hashes = $this->rebuild;
+		$this->files = $this->modified = $this->rebuild;
 		$this->rebuild = null;
 		return $this;
 	}
@@ -122,7 +122,7 @@ class Cloner extends Object
 			}
 
 			ksort($this->files);
-			ksort($this->hashes);
+			ksort($this->modified);
 		}
 
 		return $this->files;
@@ -132,12 +132,12 @@ class Cloner extends Object
 	/**
 	 * @param string $source
 	 * @param string $target
-	 * @param string $hash
+	 * @param string $modified
 	 */
-	private function storeFile($source, $target, $hash)
+	private function storeFile($source, $target, $modified)
 	{
 		$this->files[$source] = $target;
-		$this->hashes[$target] = $hash;
+		$this->modified[$target] = $modified;
 	}
 
 
@@ -171,10 +171,10 @@ class Cloner extends Object
 			}
 
 			foreach (Finder::findFiles($mask)->$method($source) as $fileName => $file) {
-				$this->storeFile($fileName, $this->parseTargetFileName($fileName, $target, $source), $this->getFileHash($fileName));
+				$this->storeFile($fileName, $this->parseTargetFileName($fileName, $target, $source), $this->getFileModified($fileName));
 			}
 		} else if (is_file($source)) {
-			$this->storeFile($source, $this->parseTargetFileName($source, $target), $this->getFileHash($source));
+			$this->storeFile($source, $this->parseTargetFileName($source, $target), $this->getFileModified($source));
 		} else {
 			throw new InvalidPathException('Could not process '. $source. ' path.');
 		}
@@ -204,11 +204,11 @@ class Cloner extends Object
 
 	/**
 	 * @param string $file
-	 * @return string
+	 * @return int
 	 */
-	private function getFileHash($file)
+	private function getFileModified($file)
 	{
-		return hash_file('sha512', $file);
+		return filemtime($file);
 	}
 
 
@@ -224,13 +224,22 @@ class Cloner extends Object
 	/**
 	 * @return array
 	 */
+	public function getOldFiles()
+	{
+		return $this->cache->load('files', function() {
+			return [];
+		});
+	}
+
+
+	/**
+	 * @return array
+	 */
 	public function getRebuildList()
 	{
 		if (!$this->rebuild) {
 			$files = $this->getFiles();
-			$oldFiles = $this->cache->load('files', function() {
-				return [];
-			});
+			$oldFiles = $this->getOldFiles();
 
 			$this->rebuild = [
 				'copy' => [],
@@ -241,7 +250,7 @@ class Cloner extends Object
 			foreach ($files as $source => $target) {
 				if (!isset($oldFiles[$target])) {
 					$this->rebuild['copy'][] = $source;
-				} elseif ($this->hashes[$target] !== $oldFiles[$target]) {
+				} elseif ($this->modified[$target] !== $oldFiles[$target]) {
 					unset($oldFiles[$target]);
 					$this->rebuild['copy'][] = $source;
 				} else {
@@ -250,7 +259,7 @@ class Cloner extends Object
 				}
 			}
 
-			foreach ($oldFiles as $target => $hash) {
+			foreach ($oldFiles as $target => $modified) {
 				$this->rebuild['remove'][] = $target;
 			}
 		}
@@ -285,7 +294,7 @@ class Cloner extends Object
 			$this->onLeave($file);
 		}
 
-		$this->cache->save('files', $this->hashes);
+		$this->cache->save('files', $this->modified);
 	}
 
 }

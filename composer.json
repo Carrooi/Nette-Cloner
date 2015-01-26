@@ -22,7 +22,8 @@
 		"nette/bootstrap": "~2.2",
 		"nette/application": "~2.2",
 		"nette/mail": "~2.2",
-		"nette/safe-stream": "~2.2"
+		"nette/safe-stream": "~2.2",
+		"mockery/mockery": "~0.9"
 	},
 	"autoload": {
 		"psr-4": {

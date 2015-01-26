@@ -13,6 +13,7 @@ use Kdyby\Console\StringOutput;
 use Nette\Configurator;
 use Symfony\Component\Console\Input\ArrayInput;
 use Tester\Assert;
+use Tester\FileMock;
 use Tester\TestCase;
 
 require_once __DIR__. '/../../bootstrap.php';
@@ -43,7 +44,6 @@ class RunCommandTest extends TestCase
 		$config->setTempDirectory(TEMP_DIR);
 		$config->addParameters(['appDir' => __DIR__. '/../']);
 		$config->addConfig(__DIR__. '/../config/config.neon');
-		$config->addConfig(__DIR__. '/../config/simple.neon');
 
 		$context = $config->createContainer();
 
@@ -55,14 +55,26 @@ class RunCommandTest extends TestCase
 
 	public function testExecute()
 	{
-		copy(__DIR__. '/../files/css/style.css', TEMP_DIR. '/public/style.css');
-		copy(__DIR__. '/../files/css/other.css', TEMP_DIR. '/public/other.css');
-		copy(__DIR__. '/../files/js/menu.js', TEMP_DIR. '/public/menu.js');
+		$original = [
+			'style' => FileMock::create('', 'css'),
+			'other' => FileMock::create('', 'css'),
+			'web' => FileMock::create('new', 'js'),
+		];
+		$temp = [
+			'style' => FileMock::create('', 'css'),
+			'other' => FileMock::create('', 'css'),
+			'web' => FileMock::create('old', 'js'),
+			'menu' => FileMock::create('', 'css'),
+		];
+
+		$this->cloner->addPath($original['style'], $temp['style']);
+		$this->cloner->addPath($original['other'], $temp['other']);
+		$this->cloner->addPath($original['web'], $temp['web']);
 
 		$this->cloner->getCache()->save('files', [
-			TEMP_DIR. '/public/style.css' => hash_file('sha512', TEMP_DIR. '/public/style.css'),
-			TEMP_DIR. '/public/other.css' => 'thereShouldBeFileHash',
-			TEMP_DIR. '/public/menu.js' => 'doesNotMatter',
+			$temp['style'] => filemtime($temp['style']),
+			$temp['other'] => 555,
+			$temp['menu'] => 555,
 		]);
 
 		$input = new ArrayInput([
@@ -74,55 +86,14 @@ class RunCommandTest extends TestCase
 
 		$output = explode("\n", $output->getOutput());
 		Assert::same([
-			'Copy '. __DIR__. '/..//files/css/other.css to '. TEMP_DIR. '/public/other.css',
-			'Copy '. __DIR__. '/..//files/js/web.js to '. TEMP_DIR. '/public/web.js',
-			'Remove '. TEMP_DIR. '/public/menu.js',
-			'Leave '. TEMP_DIR. '/public/style.css',
+			'Copy '. $original['other']. ' to '. $temp['other'],
+			'Copy '. $original['web']. ' to '. $temp['web'],
+			'Remove '. $temp['menu'],
+			'Leave '. $temp['style'],
 			'',
 		], $output);
 
-		Assert::false(is_file(TEMP_DIR. '/public/web.js'));
-	}
-
-
-	public function testExecute_force()
-	{
-		copy(__DIR__. '/../files/css/style.css', TEMP_DIR. '/public/style.css');
-		copy(__DIR__. '/../files/css/other.css', TEMP_DIR. '/public/other.css');
-		copy(__DIR__. '/../files/js/menu.js', TEMP_DIR. '/public/menu.js');
-
-		$this->cloner->getCache()->save('files', [
-			TEMP_DIR. '/public/style.css' => hash_file('sha512', TEMP_DIR. '/public/style.css'),
-			TEMP_DIR. '/public/other.css' => 'thereShouldBeFileHash',
-			TEMP_DIR. '/public/menu.js' => 'doesNotMatter',
-		]);
-
-		$input = new ArrayInput([
-			'command' => 'cloner:run',
-			'--force' => true,
-		]);
-		$output = new StringOutput;
-
-		Assert::true(is_file(TEMP_DIR. '/public/other.css'));
-		Assert::false(is_file(TEMP_DIR. '/public/web.js'));
-		Assert::true(is_file(TEMP_DIR. '/public/menu.js'));
-		Assert::true(is_file(TEMP_DIR. '/public/style.css'));
-
-		$this->command->run($input, $output);
-
-		$output = explode("\n", $output->getOutput());
-		Assert::same([
-			'Copying '. __DIR__. '/..//files/css/other.css to '. TEMP_DIR. '/public/other.css',
-			'Copying '. __DIR__. '/..//files/js/web.js to '. TEMP_DIR. '/public/web.js',
-			'Removing '. TEMP_DIR. '/public/menu.js',
-			'Leaving '. TEMP_DIR. '/public/style.css',
-			'',
-		], $output);
-
-		Assert::true(is_file(TEMP_DIR. '/public/other.css'));
-		Assert::true(is_file(TEMP_DIR. '/public/web.js'));
-		Assert::false(is_file(TEMP_DIR. '/public/menu.js'));
-		Assert::true(is_file(TEMP_DIR. '/public/style.css'));
+		Assert::same('old', file_get_contents($temp['web']));
 	}
 
 }

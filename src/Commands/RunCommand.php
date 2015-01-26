@@ -63,8 +63,8 @@ class RunCommand extends Command
 
 			$this->cloner->run();
 		} else {
-			$files = $this->cloner->getFiles();
 			$rebuild = $this->cloner->getRebuildList();
+			$files = $this->cloner->getFiles();
 
 			foreach ($rebuild['copy'] as $file) {
 				$source = $file;

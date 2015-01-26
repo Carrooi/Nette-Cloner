@@ -65,7 +65,7 @@ class ClonerTest extends TestCase
 	{
 		$cache = new Cache($this->storage, Cloner::CACHE_NAMESPACE);
 		$cache->save('files', [
-			$this->public. '/style.css' => 'thereShouldBeFileHash',
+			$this->public. '/style.css' => 555,
 		]);
 
 		$this->cloner->addPath(__DIR__. '/files/css/style.css', $this->public. '/style.css');
@@ -85,7 +85,7 @@ class ClonerTest extends TestCase
 	{
 		$cache = new Cache($this->storage, Cloner::CACHE_NAMESPACE);
 		$cache->save('files', [
-			$this->public. '/style.css' => 'thereShouldBeFileHash',
+			$this->public. '/style.css' => 555,
 		]);
 
 		$list = $this->cloner->getRebuildList();
@@ -104,7 +104,7 @@ class ClonerTest extends TestCase
 	{
 		$cache = new Cache($this->storage, Cloner::CACHE_NAMESPACE);
 		$cache->save('files', [
-			$this->public. '/style.css' => hash_file('sha512', __DIR__. '/files/css/style.css'),
+			$this->public. '/style.css' => filemtime(__DIR__. '/files/css/style.css'),
 		]);
 
 		$this->cloner->addPath(__DIR__. '/files/css/style.css', $this->public. '/style.css');
@@ -125,9 +125,9 @@ class ClonerTest extends TestCase
 	{
 		$cache = new Cache($this->storage, Cloner::CACHE_NAMESPACE);
 		$cache->save('files', [
-			$this->public. '/other.css' => 'thereShouldBeFileHash',									// different hash
-			$this->public. '/style.css' => hash_file('sha512', __DIR__. '/files/css/style.css'),	// same, leave
-			$this->public. '/core/variables.css' => 'thereShouldBeFileHash',						// old file, remove
+			$this->public. '/other.css' => 555,														// different filemtime
+			$this->public. '/style.css' => filemtime(__DIR__. '/files/css/style.css'),				// same, leave
+			$this->public. '/core/variables.css' => 555,											// old file, remove
 		]);
 
 		$this->cloner->addPath(__DIR__. '/files/js/web.js', $this->public. '/web.js');				// new file
@@ -164,9 +164,9 @@ class ClonerTest extends TestCase
 
 		Assert::true(isset($files[$this->public. '/style.css']));
 
-		$hash = $files[$this->public. '/style.css'];
+		$modified = $files[$this->public. '/style.css'];
 
-		Assert::same(hash_file('sha512', __DIR__. '/files/css/style.css'), $hash);
+		Assert::same(filemtime(__DIR__. '/files/css/style.css'), $modified);
 		Assert::true(is_file($this->public. '/style.css'));
 	}
 
@@ -177,7 +177,7 @@ class ClonerTest extends TestCase
 
 		file_put_contents($this->public. '/style.css', 'body {}');
 		$cache->save('files', [
-			$this->public. '/style.css' => hash_file('sha512', $this->public. '/style.css'),
+			$this->public. '/style.css' => filemtime($this->public. '/style.css') - 5,
 		]);
 
 		Assert::true(is_file($this->public. '/style.css'));
@@ -196,7 +196,7 @@ class ClonerTest extends TestCase
 
 		copy(__DIR__. '/files/css/style.css', $this->public. '/style.css');
 		$cache->save('files', [
-			$this->public. '/style.css' => hash_file('sha512', $this->public. '/style.css'),
+			$this->public. '/style.css' => filemtime($this->public. '/style.css'),
 		]);
 
 		Assert::true(is_file($this->public. '/style.css'));
@@ -213,7 +213,7 @@ class ClonerTest extends TestCase
 
 		copy(__DIR__. '/files/css/style.css', $this->public. '/style.css');
 		$cache->save('files', [
-			$this->public. '/style.css' => hash_file('sha512', $this->public. '/style.css'),
+			$this->public. '/style.css' => filemtime($this->public. '/style.css'),
 		]);
 
 		Assert::true(is_file($this->public. '/style.css'));
