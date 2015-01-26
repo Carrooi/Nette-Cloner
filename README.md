@@ -68,3 +68,6 @@ You can also register this command as post install/update script in your compose
 
 * 1.0.0
 	+ First version
+	
+* 1.0.1
+	+ Checking for changes with filemtime, not hash_file
